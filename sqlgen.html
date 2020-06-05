@@ -1,0 +1,145 @@
+<!-- SQL generator by Maurice Bourdin (2020-06-05)
+I was bored today and this week i had multiple times to insert 20 to 50 rows of similar data into a database table
+I made a small java program but i had to edit the source and recompile every time, so i thought a html/javascript
+version would be better, and here it is
+This work is free for anyone to use and improve as they wish .
+
+The save function relies on FileSaver.js, but the generator still works without it.
+    /*
+    * FileSaver.js
+    * A saveAs() FileSaver implementation.
+    *
+    * By Eli Grey, http://eligrey.com
+    *
+    * License : https://github.com/eligrey/FileSaver.js/blob/master/LICENSE.md (MIT)
+    * source  : http://purl.eligrey.com/github/FileSaver.js
+    */
+-->
+
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Generateur d'inserts SQL repetitifs</title>
+    <style type="text/css">
+        label {
+            display: inline-block;
+            width: 200px;
+        }
+
+        input {
+            display: inline-block;
+            width: 80%;
+        }
+
+        textarea {
+            display: inline-block;
+            width: 80%;
+            height: 300px;
+        }
+        div {
+            border: solid cyan;
+        }
+        button {
+            background-color: limegreen;
+        }
+    </style>
+    <script type="text/javascript" src="FileSaver.js"></script>
+</head>
+<body>
+<div>SQL Generator version beta. N'inclus aucune verification sur la validité du script!</div>
+<div>
+    <label for="tableNameInput">TableName</label><input type="text" onblur="update('tableName','tableNameInput')"
+                                                        id="tableNameInput">
+</div>
+<div>
+    <label for="structureInput">Structure</label><input type="text" onblur="update('structure','structureInput')"
+                                                        id="structureInput">
+</div>
+<div>
+    <label for="varsInput">Vars</label><textarea  onblur="update('vars','varsInput')" id="varsInput">
+{
+"imin":0,
+"imax":1,
+"step":1
+}
+</textarea>
+</div>
+
+<div>
+    <label for="expressionInput">expression</label><input type="text" id="expressionInput">
+</div>
+<div>
+    iteration variable is always called i,
+    imin and imax names should not be changed
+    step is optional , but should keep this name and be positive if present.
+</div>
+<div>
+    <label for="whereClauseInput">Where clause </label><input type="text" id="whereClauseInput" onblur="update('whereClause','whereClauseInput')">
+</div>
+<div>
+    <label for="filenameInput">filename</label><input type="text" id="filenameInput" onblur="setFilename()" value="script.sql">
+</div>
+<div>
+    <button onclick="generate()">Generate!</button> <button onclick="save()"> Save</button>
+</div>
+
+<div id="sql">
+    <div>INSERT INTO <span id="tableName"></span> (<span id="structure"></span>) VALUES </div>
+    <span id="values"></span>
+    <span id="where"></span>
+    <span id="whereClause"></span>;
+    
+</div>
+
+<script type="text/javascript">
+    let vars = {};
+    let filename="script.sql";
+    function generate() {
+        let str = "";
+        if (vars.step === undefined) {
+            vars.step = 1;
+        }
+        for (let i = vars.imin; i <= vars.imax; i += vars.step) {
+            str +="("+ eval(document.getElementById("expressionInput").value)+")";
+            if( (i+vars.step)<=vars.imax )
+            {
+                str+=",";
+            }
+            str+= "<br>\n";
+        }
+        document.getElementById("values").innerHTML = str;
+        if (document.getElementById("whereClause").innerText===""){
+            document.getElementById("where").innerText="";
+        }
+        else
+        {
+            document.getElementById("where").innerText="WHERE ";
+        }
+    }
+
+    function update(destination, source) {
+        if (source === "varsInput") {
+            vars = JSON.parse(document.getElementById("varsInput").value);
+            console.log(vars);
+        } else {
+            document.getElementById(destination).innerText = document.getElementById(source).value;
+        }
+    }
+    function setFilename()
+    {
+        filename=document.getElementById("filenameInput").value;
+    }
+    function save(){
+        let sql=document.getElementById("sql")
+        let blob = new Blob([sql.innerText],
+            { type: "text/plain;charset=utf-8" });
+        saveAs(blob,filename);
+        console.log(filename);
+    }
+</script>
+</body>
+</html>
